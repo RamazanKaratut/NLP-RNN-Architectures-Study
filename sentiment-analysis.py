@@ -70,8 +70,8 @@ histories = {}
 test_results = {}
 
 # YENİ: Early Stopping Ayarı
-# val_accuracy 3 adım boyunca artmazsa dur ve en iyi modeli geri yükle
-early_stop = EarlyStopping(monitor='val_accuracy', 
+# val_loss 3 adım boyunca artmazsa dur ve en iyi modeli geri yükle
+early_stop = EarlyStopping(monitor='val_loss', 
                            patience=3, 
                            restore_best_weights=True,
                            verbose=1)

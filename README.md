@@ -38,25 +38,51 @@ Aşağıdaki grafiklerde, 4 farklı modelin eğitim süreci boyunca gösterdiği
 
 ## 📌 Proje 2: Character-Level Language Model (Karakter Seviyeli Dil Modeli)
 
-Bu projede Karpathy'nin **Tiny Shakespeare** veri seti kullanılarak karakter seviyesinde bir LSTM dil modeli (Char-RNN) eğitilmiştir. Model kelimeleri değil, harfleri öğrenerek bir sonraki karakteri tahmin etmeye çalışır.
+Bu projede Karpathy'nin **Tiny Shakespeare** veri seti kullanılarak karakter seviyesinde bir LSTM dil modeli (Char-RNN) eğitilmiştir. Model kelimeleri değil, harfleri öğrenerek bir sonraki karakteri tahmin etmeye çalışır. Veri seti %90 Eğitim (Train) ve %10 Doğrulama (Validation) olarak ikiye ayrılmıştır.
 
-
-
-### 🧠 Mimari
+### 🧠 Mimari ve Optimizasyon
+Modelin aşırı öğrenmesini (overfitting) engellemek için Dropout katmanları ve Early Stopping entegre edilmiştir:
 * **1x Embedding Katmanı:** Karakterlerin yoğun vektör temsili için.
-* **1x LSTM Katmanı:** 512 birim, stateful yapıda. Zemberek (sequence) takibi için.
+* **1x Dropout Katmanı (%20):** Ezberlemeyi önlemek için.
+* **1x LSTM Katmanı:** 512 birim, stateful yapıda ve %20 recurrent dropout içerir. Sequence takibi için.
+* **1x Dropout Katmanı (%20):** Çıktıdan hemen önce özelliklerin rastgele kapatılması için.
 * **1x Dense Katmanı:** Vocabulary (Kelime/Karakter dağarcığı) boyutu kadar çıktı üretir.
+
+### 📈 Eğitim Süreci ve Early Stopping
+Model, doğrulama kaybını (val_loss) izleyerek eğitilmiştir. Eğitim 34. epoch'ta Early Stopping mekanizması tarafından durdurulmuş ve modelin en iyi performansı gösterdiği **29. epoch**'taki ağırlıkları (val_loss: 1.4996) otomatik olarak geri yüklenmiştir.
+
+![Char-RNN Eğitim ve Doğrulama Kaybı](images/char_rnn_loss.png)
+*Şekil 3: Karakter seviyeli dil modelinin epoch bazlı eğitim ve doğrulama kaybı.*
 
 ### 🎭 Modelden Örnek Çıktılar
 
-Model eğitildikten sonra, sisteme `"ROMEO: "` başlangıç metni (seed) verilerek aşağıdaki metin üretilmiştir:
+Modelin en optimize edilmiş (29. epoch) ağırlıklarıyla, sisteme `"ROMEO: "` başlangıç metni (seed) verilerek aşağıdaki metin üretilmiştir:
 
-> **ROMEO:** I shall be to the part in the bear.
-> **JULIET:** What is the word in the sight of my father?
-> **KING RICHARD III:** He is the man that is so straight for him,
-> And leave the state of thy master.
+> **ROMEO:** how then?
+> 
+> **CLARENCE:**
+> Romeo, your cut off all gentlemen!
+> 
+> **CORIOLANUS:**
+> He will not, sir, it shall not hear thee like.
+> 
+> **CLIFFORD:**
+> No, pardon me.
+> 
+> **GLOUCESTER:**
+> I did the precious love, of your wild my sister
+> Is as the mistress of your honour in the day.
+> 
+> **BRAKENBURY:**
+> O men of company, sir.
+> 
+> **POMPEY:**
+> Prove a poor stand way's death, that things content
+> To seize on my heart canst not madit me but despite of the order,
+> And then the army fools, by such an elphat body
+> With love of death shall prove him so.
 
-*(Model, Shakespeare'in tiyatro formatını —büyük harfli isimler, alt satıra geçme ve noktalama işaretleri— başarıyla öğrenmiş ve İngilizce kelime yapılarını taklit etmeye başlamıştır.)*
+*(Analiz: Model, kelimelerin harflerden nasıl oluştuğunu öğrenmekle kalmamış; isimleri büyük harfle yazmayı, iki nokta üst üste kullanımını, satır atlamayı ve hatta "thee", "canst" gibi Eski İngilizce tiyatro jargonu kelimelerini kendi kendine inşa etmeyi başarmıştır.)*
 
 ---
 
