@@ -14,11 +14,11 @@ Bu depo, Doğal Dil İşleme (NLP) ve Tekrarlayan Sinir Ağları (RNN) mimariler
 
 Bu projenin amacı, IMDB film eleştirileri veri setini kullanarak metinlerin olumlu (positive) veya olumsuz (negative) olduğunu tahmin eden ikili sınıflandırma (binary classification) modelleri geliştirmektir. 
 
-Çalışma kapsamında **%85+ test doğruluğu (accuracy)** hedeflenmiş ve 4 farklı RNN mimarisi karşılaştırılmıştır:
-1. Unidirectional LSTM
-2. Unidirectional GRU
-3. Bidirectional LSTM
-4. Bidirectional GRU
+10 epoch süren eğitim sonucunda modellerin unseen (görülmemiş) test verisi üzerindeki nihai doğruluk oranları şu şekildedir:
+* **Uni-LSTM:** %82.72
+* **Uni-GRU:** %84.71
+* **Bi-LSTM:** %84.98
+* **Bi-GRU:** %85.06 🏆
 
 ### 📊 Model Performansları ve Karşılaştırma
 
@@ -30,8 +30,9 @@ Aşağıdaki grafiklerde, 4 farklı modelin eğitim süreci boyunca gösterdiği
 ![Modellerin Kayıp Karşılaştırması](images/loss_plot.png)
 *Şekil 2: Modellerin epoch bazlı kayıp (loss) karşılaştırması.*
 
-**Sonuçlar:** * Çift yönlü (Bidirectional) modeller, metni hem sağdan sola hem de soldan sağa işledikleri için bağlamı daha iyi yakalamış ve tek yönlülere kıyasla daha yüksek test doğruluğu sunmuştur.
-* GRU modelleri, LSTM'e kıyasla daha az parametreye sahip oldukları için daha hızlı eğitilmiş, ancak benzer doğruluk oranlarına ulaşmayı başarmıştır.
+**Proje Çıktıları ve Analiz:** * Çift yönlü (Bidirectional) modeller bağlamı daha iyi yakalayarak **%85** başarı hedefini aşmış ve en yüksek skoru (Bi-GRU) elde etmiştir.
+* GRU hücreleri, bu spesifik veri setinde daha az işlem maliyetiyle LSTM'den daha yüksek doğruluk oranlarına ulaşmıştır.
+* Eğitim ve Doğrulama (Validation) eğrileri incelendiğinde, modellerin 3. epoch'tan sonra *overfitting* (ezberleme) eğilimine girdiği gözlemlenmiştir. Bu durum, gelecekteki geliştirmelerde `EarlyStopping` veya daha yüksek `Dropout` oranları kullanılarak optimize edilebilir.
 
 ---
 

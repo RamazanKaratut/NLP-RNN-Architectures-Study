@@ -2,7 +2,8 @@ import tensorflow as tf
 from tensorflow.keras.datasets import imdb
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Embedding, LSTM, GRU, Dense, Bidirectional
+from tensorflow.keras.layers import Embedding, LSTM, GRU, Dense, Bidirectional, Dropout, SpatialDropout1D
+from tensorflow.keras.callbacks import EarlyStopping
 import matplotlib.pyplot as plt
 import os
 
@@ -15,7 +16,7 @@ os.makedirs('images', exist_ok=True)
 max_features = 10000  
 maxlen = 200          
 batch_size = 64
-epochs = 3            
+epochs = 15 # Early stopping eklediğimiz için yüksek tutabiliriz, nasılsa kendi duracak 
 embedding_dim = 128
 
 print("IMDB Veri seti yükleniyor...")
@@ -26,22 +27,31 @@ x_train = pad_sequences(x_train, maxlen=maxlen)
 x_test = pad_sequences(x_test, maxlen=maxlen)
 
 # ==========================================
-# 2. MODEL OLUŞTURMA FONKSİYONU
+# 2. MODEL OLUŞTURMA FONKSİYONU (GÜNCELLENDİ)
 # ==========================================
 def build_model(model_type='lstm', bidirectional=False):
     model = Sequential()
-    model.add(Embedding(max_features, embedding_dim, input_length=maxlen))
     
+    # Yeni Keras standardına uygun Input katmanı
+    model.add(tf.keras.Input(shape=(maxlen,)))
+    
+    model.add(Embedding(max_features, embedding_dim))
+    # YENİ: Embedding katmanında rastgele özellikleri kapatarak ezberlemeyi önle
+    model.add(SpatialDropout1D(0.2)) 
+    
+    # YENİ: RNN katmanlarına dropout eklendi
     if model_type == 'lstm':
-        rnn_layer = LSTM(64)
+        rnn_layer = LSTM(64, dropout=0.2) 
     else:
-        rnn_layer = GRU(64)
+        rnn_layer = GRU(64, dropout=0.2)
         
     if bidirectional:
         model.add(Bidirectional(rnn_layer))
     else:
         model.add(rnn_layer)
         
+    # YENİ: Çıktıdan hemen önce son bir Dropout katmanı
+    model.add(Dropout(0.2))
     model.add(Dense(1, activation='sigmoid'))
     
     model.compile(loss='binary_crossentropy', 
@@ -59,6 +69,13 @@ scenarios = [
 histories = {}
 test_results = {}
 
+# YENİ: Early Stopping Ayarı
+# val_accuracy 3 adım boyunca artmazsa dur ve en iyi modeli geri yükle
+early_stop = EarlyStopping(monitor='val_accuracy', 
+                           patience=3, 
+                           restore_best_weights=True,
+                           verbose=1)
+
 # ==========================================
 # 3. EĞİTİM VE TEST DÖNGÜSÜ
 # ==========================================
@@ -74,6 +91,7 @@ for s in scenarios:
                         batch_size=batch_size,
                         epochs=epochs,
                         validation_split=0.2, 
+                        callbacks=[early_stop], # Callback eklendi
                         verbose=1)
     
     histories[name] = history.history
@@ -84,8 +102,10 @@ for s in scenarios:
 # ==========================================
 # 4. SONUÇLARIN GÖRSELLEŞTİRİLMESİ VE KAYDEDİLMESİ
 # ==========================================
+plt.figure(figsize=(14, 6))
+
 # 1. Grafik: Accuracy (Doğruluk)
-plt.figure(figsize=(8, 6))
+plt.subplot(1, 2, 1)
 for name, hist in histories.items():
     label_name = f"{name} (Test: %{test_results[name]*100:.1f})"
     plt.plot(hist['val_accuracy'], label=label_name, marker='o')
@@ -94,13 +114,9 @@ plt.ylabel('Accuracy (Doğruluk)')
 plt.xlabel('Epoch')
 plt.legend()
 plt.grid(True, linestyle='--', alpha=0.7)
-plt.tight_layout()
-plt.savefig('images/accuracy_plot.png') # Görseli kaydet
-print("Accuracy grafiği 'images/accuracy_plot.png' olarak kaydedildi.")
-plt.close()
 
 # 2. Grafik: Loss (Kayıp)
-plt.figure(figsize=(8, 6))
+plt.subplot(1, 2, 2)
 for name, hist in histories.items():
     plt.plot(hist['val_loss'], label=name, marker='s')
 plt.title('Modellerin Doğrulama (Validation) Kaybı')
@@ -108,7 +124,8 @@ plt.ylabel('Loss (Kayıp/Hata)')
 plt.xlabel('Epoch')
 plt.legend()
 plt.grid(True, linestyle='--', alpha=0.7)
+
 plt.tight_layout()
-plt.savefig('images/loss_plot.png') # Görseli kaydet
-print("Loss grafiği 'images/loss_plot.png' olarak kaydedildi.")
-plt.close()
+plt.savefig('images/accuracy_loss_combined.png')
+print("\nBirleştirilmiş grafik 'images/accuracy_loss_combined.png' olarak kaydedildi.")
+plt.show()
