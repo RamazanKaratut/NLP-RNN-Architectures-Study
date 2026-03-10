@@ -90,5 +90,5 @@ Projeyi kendi bilgisayarınızda çalıştırmak için:
 
 1. Depoyu klonlayın:
    ```bash
-   git clone [https://github.com/KULLANICI_ADINIZ/NLP-RNN-Architectures-Study.git](https://github.com/KULLANICI_ADINIZ/NLP-RNN-Architectures-Study.git)
+   git clone [https://github.com/RamazanKaratut/NLP-RNN-Architectures-Study.git](https://github.com/RamazanKaratut/NLP-RNN-Architectures-Study.git)
    cd NLP-RNN-Architectures-Study
